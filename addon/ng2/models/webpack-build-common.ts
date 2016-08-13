@@ -1,11 +1,23 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
+import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 import * as webpack from 'webpack';
 import { ForkCheckerPlugin } from 'awesome-typescript-loader';
 import { CliConfig } from './config';
 
 export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
+  function findMainStylesheets(): string[] {
+    function getFileNameWithExtension(extension){
+      return path.resolve(projectRoot, `./${sourceDir}/main.${extension}`);
+    }
+    return ['scss', 'styl', 'less', 'css'].filter((extension) => {
+      return fs.existsSync(getFileNameWithExtension(extension));
+    }).map((extension) => {
+      return getFileNameWithExtension(extension);
+    });
+  }
   return {
     devtool: 'source-map',
     resolve: {
@@ -18,6 +30,7 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
     context: path.resolve(__dirname, './'),
     entry: {
       main: [path.resolve(projectRoot, `./${sourceDir}/main.ts`)],
+      styles: findMainStylesheets(),
       polyfills: path.resolve(projectRoot, `./${sourceDir}/polyfills.ts`)
     },
     output: {
@@ -43,15 +56,52 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           exclude: [/\.(spec|e2e)\.ts$/]
         },
         { test: /\.json$/, loader: 'json-loader'},
-        { test: /\.css$/,  loaders: ['raw-loader', 'postcss-loader?sourceMap'] },
-        { test: /\.styl$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap'] },
-        { test: /\.less$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap'] },
-        { test: /\.scss$|\.sass$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'] },
+        {
+          test: /\.css$/,
+          exclude: findMainStylesheets(),
+          loaders: ['raw-loader', 'postcss-loader?sourceMap']
+        },
+        {
+          test: /\.css$/,
+          include: findMainStylesheets(),
+          loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap'])
+        },
+        {
+          test: /\.styl$/,
+          exclude: findMainStylesheets(),
+          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap']
+        },
+        {
+          test: /\.styl$/,
+          include: findMainStylesheets(),
+          loaders: ExtractTextPlugin.extract(['css-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap'])
+        },
+        {
+          test: /\.less$/,
+          exclude: findMainStylesheets(),
+          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap']
+        },
+        {
+          test: /\.less$/,
+          include: findMainStylesheets(),
+          loaders: ExtractTextPlugin.extract(['css-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap'])
+        },
+        {
+          test: /\.scss$|\.sass$/,
+          exclude: findMainStylesheets(),
+          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'sass-loader?sourceMap']
+        },
+        {
+          test: /\.scss$|\.sass$/,
+          include: findMainStylesheets(),
+          loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'])
+        },
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=128000&name=images/[hash].[ext]'},
         { test: /\.html$/, loader: 'html-loader' }
       ]
     },
     plugins: [
+      new ExtractTextPlugin({filename: 'css/[name]_[hash].css', allChunks: true}),
       new ForkCheckerPlugin(),
       new HtmlWebpackPlugin({
         template: path.resolve(projectRoot, `./${sourceDir}/index.html`),
@@ -81,4 +131,4 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
       setImmediate: false
     }
   }
-};
+}
