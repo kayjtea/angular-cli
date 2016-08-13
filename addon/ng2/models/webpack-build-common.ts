@@ -98,12 +98,30 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=8192&name=images/[hash].[ext]'},
         { test: /\.html$/, loader: 'html-loader!markup-inline-loader' },
 
+        { test: /\.(md|markdown)$/, loader: 'html-loader!markup-inline-loader!markdown-it-loader' },
+        { test: /\.(pug|jade)$/, loader: 'html-loader!markup-inline-loader!jade-html-loader' },
+
         { test: /\.json$/, loader: 'json-loader'},
         { test: /\.hson$/, loader: 'hson-loader'},
         { test: /\.yml$/, loader: 'json-loader!yaml-loader'},
         { test: /\.(csv|tsv)$/, loader: 'dsv-loader'},
         { test: /\.xml$/, loader: 'xml-loader'},
         { test: /\.txt$/, loader: 'raw-loader'},
+      ]
+    },
+    'markdown-it': {
+      preset: 'default',
+      typographer: true,
+      use: [
+        require('markdown-it-highlightjs'),
+        require('markdown-it-sub'),
+        require('markdown-it-sup'),
+        require('markdown-it-abbr'),
+        require('markdown-it-deflist'),
+        require('markdown-it-emoji'),
+        require('markdown-it-footnote'),
+        require('markdown-it-ins'),
+        require('markdown-it-mark'),
       ]
     },
     plugins: [
