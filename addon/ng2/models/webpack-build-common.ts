@@ -55,7 +55,6 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           ],
           exclude: [/\.(spec|e2e)\.ts$/]
         },
-        { test: /\.json$/, loader: 'json-loader'},
         {
           test: /\.css$/,
           exclude: findMainStylesheets(),
@@ -97,7 +96,14 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'])
         },
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=8192&name=images/[hash].[ext]'},
-        { test: /\.html$/, loader: 'html-loader!markup-inline-loader' }
+        { test: /\.html$/, loader: 'html-loader!markup-inline-loader' },
+
+        { test: /\.json$/, loader: 'json-loader'},
+        { test: /\.hson$/, loader: 'hson-loader'},
+        { test: /\.yml$/, loader: 'json-loader!yaml-loader'},
+        { test: /\.(csv|tsv)$/, loader: 'dsv-loader'},
+        { test: /\.xml$/, loader: 'xml-loader'},
+        { test: /\.txt$/, loader: 'raw-loader'},
       ]
     },
     plugins: [
