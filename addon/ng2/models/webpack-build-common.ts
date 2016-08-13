@@ -97,7 +97,7 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'])
         },
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=128000&name=images/[hash].[ext]'},
-        { test: /\.html$/, loader: 'html-loader' }
+        { test: /\.html$/, loader: 'html-loader!markup-inline-loader' }
       ]
     },
     plugins: [
