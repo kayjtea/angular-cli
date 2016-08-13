@@ -4,8 +4,7 @@ import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 import * as webpack from 'webpack';
-import { ForkCheckerPlugin } from 'awesome-typescript-loader';
-import { CliConfig } from './config';
+import {ForkCheckerPlugin} from 'awesome-typescript-loader';
 
 export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
   function findMainStylesheets(): string[] {
@@ -43,14 +42,14 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           test: /\.ts$/,
           loaders: [
             {
-              loader: 'awesome-typescript-loader',
+              loader: 'awesome-typescript',
               query: {
                 useForkChecker: true,
                 tsconfig: path.resolve(projectRoot, `./${sourceDir}/tsconfig.json`)
               }
             },
             {
-              loader: 'angular2-template-loader'
+              loader: 'angular2-template'
             }
           ],
           exclude: [/\.(spec|e2e)\.ts$/]
@@ -58,55 +57,55 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
         {
           test: /\.css$/,
           exclude: findMainStylesheets(),
-          loaders: ['raw-loader', 'postcss-loader?sourceMap']
+          loaders: ['raw', 'postcss?sourceMap']
         },
         {
           test: /\.css$/,
           include: findMainStylesheets(),
-          loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap'])
+          loaders: ExtractTextPlugin.extract(['css?sourceMap', 'postcss?sourceMap'])
         },
         {
           test: /\.styl$/,
           exclude: findMainStylesheets(),
-          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap']
+          loaders: ['raw', 'postcss?sourceMap', 'stylus?sourceMap']
         },
         {
           test: /\.styl$/,
           include: findMainStylesheets(),
-          loaders: ExtractTextPlugin.extract(['css-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap'])
+          loaders: ExtractTextPlugin.extract(['css', 'postcss?sourceMap', 'stylus?sourceMap'])
         },
         {
           test: /\.less$/,
           exclude: findMainStylesheets(),
-          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap']
+          loaders: ['raw', 'postcss?sourceMap', 'less?sourceMap']
         },
         {
           test: /\.less$/,
           include: findMainStylesheets(),
-          loaders: ExtractTextPlugin.extract(['css-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap'])
+          loaders: ExtractTextPlugin.extract(['css', 'postcss?sourceMap', 'less?sourceMap'])
         },
         {
           test: /\.scss$|\.sass$/,
           exclude: findMainStylesheets(),
-          loaders: ['raw-loader', 'postcss-loader?sourceMap', 'sass-loader?sourceMap']
+          loaders: ['raw', 'postcss?sourceMap', 'sass?sourceMap']
         },
         {
           test: /\.scss$|\.sass$/,
           include: findMainStylesheets(),
-          loaders: ExtractTextPlugin.extract(['css-loader?sourceMap', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'])
+          loaders: ExtractTextPlugin.extract(['css?sourceMap', 'postcss?sourceMap', 'sass?sourceMap'])
         },
-        { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=8192&name=images/[hash].[ext]'},
-        { test: /\.html$/, loader: 'html-loader!markup-inline-loader' },
+        {test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url?limit=8192&name=images/[hash].[ext]'},
+        {test: /\.html$/, loader: 'html!markup-inline'},
 
-        { test: /\.(md|markdown)$/, loader: 'html-loader!markup-inline-loader!markdown-it-loader' },
-        { test: /\.(pug|jade)$/, loader: 'html-loader!markup-inline-loader!jade-html-loader' },
+        {test: /\.(md|markdown)$/, loader: 'html!markup-inline!markdown-it'},
+        {test: /\.(pug|jade)$/, loader: 'html!markup-inline!jade-html'},
 
-        { test: /\.json$/, loader: 'json-loader'},
-        { test: /\.hson$/, loader: 'hson-loader'},
-        { test: /\.yml$/, loader: 'json-loader!yaml-loader'},
-        { test: /\.(csv|tsv)$/, loader: 'dsv-loader'},
-        { test: /\.xml$/, loader: 'xml-loader'},
-        { test: /\.txt$/, loader: 'raw-loader'},
+        {test: /\.json$/, loader: 'json'},
+        {test: /\.hson$/, loader: 'hson'},
+        {test: /\.yml$/, loader: 'json!yaml'},
+        {test: /\.(csv|tsv)$/, loader: 'dsv'},
+        {test: /\.xml$/, loader: 'xml'},
+        {test: /\.txt$/, loader: 'raw'},
       ]
     },
     'markdown-it': {
