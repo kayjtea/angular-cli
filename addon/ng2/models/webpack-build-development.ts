@@ -7,9 +7,9 @@ export const getWebpackDevConfigPartial = function(projectRoot: string, sourceDi
     devtool: 'source-map',
     output: {
       path: path.resolve(projectRoot, './dist'),
-      filename: '[name].bundle.js',
-      sourceMapFilename: '[name].map',
-      chunkFilename: '[id].chunk.js'
+      filename: 'js/[name].bundle.js',
+      sourceMapFilename: 'js/[name].bundle.map',
+      chunkFilename: 'js/[id].chunk.js'
     },
     module: {
       preLoaders: [

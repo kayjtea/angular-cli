@@ -11,9 +11,9 @@ export const getWebpackProdConfigPartial = function(projectRoot: string, sourceD
     devtool: 'source-map',
     output: {
       path: path.resolve(projectRoot, './dist'),
-      filename: '[name].[chunkhash].bundle.js',
-      sourceMapFilename: '[name].[chunkhash].bundle.map',
-      chunkFilename: '[id].[chunkhash].chunk.js'
+      filename: 'js/[name].[chunkhash].bundle.js',
+      sourceMapFilename: 'js/[name].[chunkhash].bundle.map',
+      chunkFilename: 'js/[id].[chunkhash].chunk.js'
     },
     module: {
       preLoaders: [
