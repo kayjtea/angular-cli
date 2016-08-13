@@ -43,10 +43,10 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
           exclude: [/\.(spec|e2e)\.ts$/]
         },
         { test: /\.json$/, loader: 'json-loader'},
-        { test: /\.css$/,  loaders: ['raw-loader', 'postcss-loader'] },
-        { test: /\.styl$/, loaders: ['raw-loader', 'postcss-loader', 'stylus-loader'] },
-        { test: /\.less$/, loaders: ['raw-loader', 'postcss-loader', 'less-loader'] },
-        { test: /\.scss$|\.sass$/, loaders: ['raw-loader', 'postcss-loader', 'sass-loader'] },
+        { test: /\.css$/,  loaders: ['raw-loader', 'postcss-loader?sourceMap'] },
+        { test: /\.styl$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'stylus-loader?sourceMap'] },
+        { test: /\.less$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap'] },
+        { test: /\.scss$|\.sass$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'] },
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=128000&name=images/[hash].[ext]'},
         { test: /\.html$/, loader: 'raw-loader' }
       ]
