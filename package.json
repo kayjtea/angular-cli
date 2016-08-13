@@ -61,6 +61,7 @@
     "istanbul-instrumenter-loader": "^0.2.0",
     "jade-html-loader": "0.0.3",
     "json-loader": "^0.5.4",
+    "karma-phantomjs-launcher": "^1.0.1",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.8.0",
     "leek": "0.0.21",
