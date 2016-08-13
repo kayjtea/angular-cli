@@ -48,7 +48,7 @@ export function getWebpackCommonConfig(projectRoot: string, sourceDir: string) {
         { test: /\.less$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'less-loader?sourceMap'] },
         { test: /\.scss$|\.sass$/, loaders: ['raw-loader', 'postcss-loader?sourceMap', 'sass-loader?sourceMap'] },
         { test: /\.(svg|gif|jpg|jpeg|png)$/, loader: 'url-loader?limit=128000&name=images/[hash].[ext]'},
-        { test: /\.html$/, loader: 'raw-loader' }
+        { test: /\.html$/, loader: 'html-loader' }
       ]
     },
     plugins: [
