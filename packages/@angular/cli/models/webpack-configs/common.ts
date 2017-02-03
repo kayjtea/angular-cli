@@ -124,7 +124,7 @@ export function getCommonConfig(wco: WebpackConfigOptions) {
       rules: [
         { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader', exclude: [nodeModules] },
         { test: /\.json$/, loader: 'json-loader' },
-        { test: /\.html$/, loader: 'raw-loader' },
+        { test: /\.html$/, loaders: ['html-loader', 'markup-inline-loader'] },
         { test: /\.(eot|svg)$/, loader: `file-loader?name=[name]${hashFormat.file}.[ext]` },
         {
           test: /\.(jpg|png|gif|otf|ttf|woff|woff2)$/,

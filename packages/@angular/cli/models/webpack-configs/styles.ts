@@ -90,7 +90,12 @@ export function getStylesConfig(wco: WebpackConfigOptions) {
 
   // load component css as raw strings
   let rules: any = baseRules.map(({test, loaders}) => ({
-    exclude: globalStylePaths, test, loaders: ['raw-loader', ...commonLoaders, ...loaders]
+    exclude: globalStylePaths, test, loaders: [
+      'css-with-mapping-loader',
+      `css-loader?${JSON.stringify({ sourceMap: cssSourceMap })}`,
+      ...commonLoaders,
+      ...loaders
+    ]
   }));
 
   // load global css as css files
