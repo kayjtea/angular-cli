@@ -20,7 +20,7 @@ export default function() {
     'src/styles.css': stripIndents`
       body { background-image: url("image.svg"); }
     `,
-    'src/image.svg': 'I would like to be an image someday.'
+    'src/image.svg': 'I would like to be an image someday.\n'.repeat(100)
     }))
     .then(() => ng('build', '--dev', '--output-hashing=all'))
     .then(() => expectFileToMatch('dist/index.html', /inline\.[0-9a-f]{20}\.bundle\.js/))
