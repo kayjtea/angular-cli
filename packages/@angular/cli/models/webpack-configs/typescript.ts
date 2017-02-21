@@ -55,7 +55,8 @@ export const getAotConfig = function(wco: WebpackConfigOptions) {
         i18nFile: buildOptions.i18nFile,
         i18nFormat: buildOptions.i18nFormat,
         locale: buildOptions.locale,
-        exclude: exclude
+        exclude: exclude,
+        skipCodeGeneration: true
       })
     ]
   };
