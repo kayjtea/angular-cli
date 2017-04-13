@@ -26,7 +26,7 @@
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
-    "@angular/cli": "<%= version %>",
+    "@angular/cli": "git+https://github.com/asnowwolf/ng-cli-2.git#v<%= version %>",
     "@angular/compiler-cli": "^4.0.0",
     "@angular/language-service": "^4.0.0",
     "@types/jasmine": "2.5.45",
