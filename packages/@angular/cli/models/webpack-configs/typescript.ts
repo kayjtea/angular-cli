@@ -71,7 +71,6 @@ function _createAotPlugin(wco: WebpackConfigOptions, options: any) {
       hostReplacementPaths,
       // If we don't explicitely list excludes, it will default to `['**/*.spec.ts']`.
       exclude: [],
-      skipCodeGeneration: true
     }, options));
 }
 
