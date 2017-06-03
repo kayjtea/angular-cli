@@ -4,10 +4,11 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -p 0",
-    "build": "ng build -prod",
+    "start": "ng serve --extract-css --proxy-config=./proxy.conf.js -p 0",
+    "build": "ng build --extract-css -prod",
     "test": "ng test",
-    "lint": "ng lint",
+    "lint": "ng lint \"src/**/*.ts\"",
+    "ci": "npm run lint && ng test --single-run",
     "e2e": "ng e2e"
   },
   "private": true,
