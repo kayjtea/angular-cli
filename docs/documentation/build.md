@@ -13,6 +13,10 @@ ng build
 
 The build artifacts will be stored in the `dist/` directory.
 
+All commands that build or serve your project, `ng build/serve/e2e`, will delete the output
+directory (`dist/` by default).
+This can be disabled via the `--no-delete-output-path` (or `--delete-output-path=false`) flag.
+
 ### Build Targets and Environment Files
 
 `ng build` can specify both a build target (`--target=production` or `--target=development`) and an
@@ -77,6 +81,8 @@ Flag                | `--dev` | `--prod`
 `--sourcemaps`      | `true`  | `false`
 `--extract-css`     | `false` | `true`
 
+`--extract-licenses` Extract all licenses in a separate file, in the case of production builds only.
+`--i18n-file` Localization file to use for i18n.
 `--prod` also sets the following non-flaggable settings:
 - Adds service worker if configured in `.angular-cli.json`.
 - Replaces `process.env.NODE_ENV` in modules with the `production` value (this is needed for some libraries, like react).

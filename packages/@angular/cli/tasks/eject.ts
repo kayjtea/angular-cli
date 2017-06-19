@@ -21,6 +21,7 @@ const angularCliPlugins = require('../plugins/webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const SilentError = require('silent-error');
+const licensePlugin = require('license-webpack-plugin');
 const Task = require('../ember-cli/lib/models/task');
 
 const ProgressPlugin = require('webpack/lib/ProgressPlugin');
@@ -35,10 +36,12 @@ const pree2eNpmScript = `webdriver-manager update --standalone false --gecko fal
 class JsonWebpackSerializer {
   public imports: {[name: string]: string[]} = {};
   public variableImports: {[name: string]: string} = {
-    'path': 'path'
+    'fs': 'fs',
+    'path': 'path',
   };
   public variables: {[name: string]: string} = {
     'nodeModules': `path.join(process.cwd(), 'node_modules')`,
+    'realNodeModules': `fs.realpathSync(nodeModules)`,
     'genDirNodeModules':
       `path.join(process.cwd(), '${this._appRoot}', '$$_gendir', 'node_modules')`,
   };
@@ -132,6 +135,12 @@ class JsonWebpackSerializer {
     return plugin.defaultValues;
   }
 
+  private _licenseWebpackPlugin(plugin: any) {
+    return {
+      'pattern': plugin.pattern
+    };
+  }
+
   private _pluginsReplacer(plugins: any[]) {
     return plugins.map(plugin => {
       let args = plugin.options || undefined;
@@ -148,6 +157,9 @@ class JsonWebpackSerializer {
           break;
         case (<any>webpack).HashedModuleIdsPlugin:
           this._addImport('webpack', 'HashedModuleIdsPlugin');
+          break;
+        case webpack.SourceMapDevToolPlugin:
+          this._addImport('webpack', 'SourceMapDevToolPlugin');
           break;
         case webpack.optimize.UglifyJsPlugin:
           this._addImport('webpack.optimize', 'UglifyJsPlugin');
@@ -178,13 +190,14 @@ class JsonWebpackSerializer {
           args = this._environmentPlugin(plugin);
           this._addImport('webpack', 'EnvironmentPlugin');
           break;
-
+        case licensePlugin:
+          args = this._licenseWebpackPlugin(plugin);
+          this.variableImports['license-webpack-plugin'] = 'licensePlugin';
         default:
           if (plugin.constructor.name == 'AngularServiceWorkerPlugin') {
             this._addImport('@angular/service-worker/build/webpack', plugin.constructor.name);
           }
           break;
-
       }
 
       const argsSerialized = JSON.stringify(args, (k, v) => this._replacer(k, v), 2) || '';
@@ -395,7 +408,7 @@ export default Task.extend({
     const outputPath = runTaskOptions.outputPath || appConfig.outDir;
     const force = runTaskOptions.force;
 
-    if (project.root === outputPath) {
+    if (project.root === path.resolve(outputPath)) {
       throw new SilentError ('Output path MUST not be project root directory!');
     }
 
