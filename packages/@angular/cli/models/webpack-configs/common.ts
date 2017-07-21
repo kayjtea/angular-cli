@@ -16,6 +16,9 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
  * require('source-map-loader')
  * require('raw-loader')
  * require('script-loader')
+ * require('html-loader')
+ * require('markup-inline-loader')
+ * require('markdown-loader')
  * require('json-loader')
  * require('url-loader')
  * require('file-loader')
@@ -107,11 +110,12 @@ export function getCommonConfig(wco: WebpackConfigOptions) {
       rules: [
         { enforce: 'pre', test: /\.js$/, loader: 'source-map-loader', exclude: [nodeModules] },
         { test: /\.json$/, loader: 'json-loader' },
-        { test: /\.html$/, loader: 'raw-loader' },
-        { test: /\.(eot|svg)$/, loader: `file-loader?name=[name]${hashFormat.file}.[ext]` },
+        { test: /\.html$/, loaders: ['html-loader', 'markup-inline-loader'] },
+        { test: /\.md$/, loaders: ['html-loader', 'markup-inline-loader', 'markdown-loader'] },
+        { test: /\.(eot|svg)$/, loader: `url-loader?name=images/[name]${hashFormat.file}.[ext]&limit=256` },
         {
           test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|cur|ani)$/,
-          loader: `url-loader?name=[name]${hashFormat.file}.[ext]&limit=10000`
+          loader: `url-loader?name=images/[name]${hashFormat.file}.[ext]&limit=1024`
         }
       ].concat(extraRules)
     },

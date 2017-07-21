@@ -4,10 +4,11 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",<% if (!minimal){ %>
+    "start": "ng serve --extract-css --proxy-config=./proxy.conf.js -p 0",
+    "build": "ng build --extract-css -prod",<% if (!minimal){ %>
     "test": "ng test",
-    "lint": "ng lint",
+    "lint": "ng lint \"src/**/*.ts\"",
+    "ci": "npm run lint && ng test --single-run",
     "e2e": "ng e2e"<% } else { %>
     "test": "echo \"Error: no test... minimal project\" && exit 1",
     "lint": "echo \"Error: no lint... minimal project\" && exit 1",
@@ -29,7 +30,7 @@
     "zone.js": "^0.8.14"
   },
   "devDependencies": {
-    "@angular/cli": "<%= version %>",
+    "@angular/cli": "git+https://github.com/asnowwolf/ng-cli-2.git#v<%= version %>",
     "@angular/compiler-cli": "^4.2.4",
     "@angular/language-service": "^4.2.4",<% if (!minimal) { %>
     "@types/jasmine": "~2.5.53",
