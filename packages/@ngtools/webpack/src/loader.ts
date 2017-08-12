@@ -435,6 +435,81 @@ function _diagnoseDeps(reasons: ModuleReason[], plugin: AotPlugin, checked: Set<
 }
 
 
+export function _getModuleExports(plugin: AotPlugin,
+                                  refactor: TypeScriptFileRefactor): ts.Identifier[] {
+  const exports = refactor
+    .findAstNodes(refactor.sourceFile, ts.SyntaxKind.ExportDeclaration, true);
+
+  return exports
+    .filter(node => {
+
+      const identifiers = refactor.findAstNodes(node, ts.SyntaxKind.Identifier, false)
+        .filter(node => node.getText() === plugin.entryModule.className);
+
+      return identifiers.length > 0;
+    }) as ts.Identifier[];
+}
+
+
+export function _replaceExport(plugin: AotPlugin, refactor: TypeScriptFileRefactor) {
+  if (!plugin.replaceExport) {
+    return;
+  }
+  _getModuleExports(plugin, refactor)
+    .forEach(node => {
+      const factoryPath = _getNgFactoryPath(plugin, refactor);
+      const factoryClassName = plugin.entryModule.className + 'NgFactory';
+      const exportStatement = `export \{ ${factoryClassName} \} from '${factoryPath}'`;
+      refactor.appendAfter(node, exportStatement);
+    });
+}
+
+
+export function _exportModuleMap(plugin: AotPlugin, refactor: TypeScriptFileRefactor) {
+  if (!plugin.replaceExport) {
+    return;
+  }
+
+  const dirName = path.normalize(path.dirname(refactor.fileName));
+  const classNameAppend = plugin.skipCodeGeneration ? '' : 'NgFactory';
+  const modulePathAppend = plugin.skipCodeGeneration ? '' : '.ngfactory';
+
+  _getModuleExports(plugin, refactor)
+    .forEach(node => {
+      const modules = Object.keys(plugin.discoveredLazyRoutes)
+        .map((loadChildrenString) => {
+          let [lazyRouteKey, moduleName] = loadChildrenString.split('#');
+
+          if (!lazyRouteKey || !moduleName) {
+            throw new Error(`${loadChildrenString} was not a proper loadChildren string`);
+          }
+
+          moduleName += classNameAppend;
+          lazyRouteKey += modulePathAppend;
+          const modulePath = plugin.lazyRoutes[lazyRouteKey];
+
+          return {
+            modulePath,
+            moduleName,
+            loadChildrenString
+          };
+        });
+
+      modules.forEach((module, index) => {
+        const relativePath = path.relative(dirName, module.modulePath).replace(/\\/g, '/');
+        refactor.prependBefore(node, `import * as __lazy_${index}__ from './${relativePath}'`);
+      });
+
+      const jsonContent: string = modules
+        .map((module, index) =>
+          `"${module.loadChildrenString}": __lazy_${index}__.${module.moduleName}`)
+        .join();
+
+      refactor.appendAfter(node, `export const LAZY_MODULE_MAP = {${jsonContent}};`);
+    });
+}
+
+
 // Super simple TS transpiler loader for testing / isolated usage. does not type check!
 export function ngcLoader(this: LoaderContext & { _compilation: any }, source: string | null) {
   const cb = this.async();
@@ -464,11 +539,14 @@ export function ngcLoader(this: LoaderContext & { _compilation: any }, source: s
         if (!plugin.skipCodeGeneration) {
           return Promise.resolve()
             .then(() => _removeDecorators(refactor))
-            .then(() => _refactorBootstrap(plugin, refactor));
+            .then(() => _refactorBootstrap(plugin, refactor))
+            .then(() => _replaceExport(plugin, refactor))
+            .then(() => _exportModuleMap(plugin, refactor));
         } else {
           return Promise.resolve()
             .then(() => _replaceResources(refactor))
-            .then(() => _removeModuleId(refactor));
+            .then(() => _removeModuleId(refactor))
+            .then(() => _exportModuleMap(plugin, refactor));
         }
       })
       .then(() => {
@@ -496,13 +574,16 @@ export function ngcLoader(this: LoaderContext & { _compilation: any }, source: s
             let message = '';
 
             diagnostics.forEach(diagnostic => {
-              const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-
-              const fileName = diagnostic.file.fileName;
-              const {line, character} = position;
-
               const messageText = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-              message += `${fileName} (${line + 1},${character + 1}): ${messageText}\n`;
+
+              if (diagnostic.file) {
+                const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+                const fileName = diagnostic.file.fileName;
+                const {line, character} = position;
+                message += `${fileName} (${line + 1},${character + 1}): ${messageText}\n`;
+              } else {
+                message += `${messageText}\n`;
+              }
             });
             throw new Error(message);
           }

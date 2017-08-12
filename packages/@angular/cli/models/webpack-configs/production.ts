@@ -71,7 +71,7 @@ export const getProdConfig = function (wco: WebpackConfigOptions) {
 
     // Load the Webpack plugin for manifest generation and install it.
     const AngularServiceWorkerPlugin = require('@angular/service-worker/build/webpack')
-        .AngularServiceWorkerPlugin;
+      .AngularServiceWorkerPlugin;
     extraPlugins.push(new AngularServiceWorkerPlugin({
       baseHref: buildOptions.baseHref || '/',
     }));
@@ -98,6 +98,9 @@ export const getProdConfig = function (wco: WebpackConfigOptions) {
     // This plugin must be before webpack.optimize.UglifyJsPlugin.
     extraPlugins.push(new PurifyPlugin());
     uglifyCompressOptions.pure_getters = true;
+    // PURE comments work best with 3 passes.
+    // See https://github.com/webpack/webpack/issues/2899#issuecomment-317425926.
+    uglifyCompressOptions.passes = 3;
   }
 
   return {
@@ -111,6 +114,7 @@ export const getProdConfig = function (wco: WebpackConfigOptions) {
       new webpack.optimize.UglifyJsPlugin(<any>{
         mangle: { screw_ie8: true },
         compress: uglifyCompressOptions,
+        output: { ascii_only: true },
         sourceMap: buildOptions.sourcemaps,
         comments: false
       })

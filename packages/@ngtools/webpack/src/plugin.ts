@@ -25,6 +25,7 @@ export interface AotPluginOptions {
   mainPath?: string;
   typeChecking?: boolean;
   skipCodeGeneration?: boolean;
+  replaceExport?: boolean;
   hostOverrideFileSystem?: { [path: string]: string };
   hostReplacementPaths?: { [path: string]: string };
   i18nFile?: string;
@@ -49,6 +50,7 @@ export class AotPlugin implements Tapable {
   private _rootFilePath: string[];
   private _compilerHost: WebpackCompilerHost;
   private _resourceLoader: WebpackResourceLoader;
+  private _discoveredLazyRoutes: LazyRouteMap;
   private _lazyRoutes: LazyRouteMap = Object.create(null);
   private _tsConfigPath: string;
   private _entryModule: string;
@@ -59,6 +61,7 @@ export class AotPlugin implements Tapable {
 
   private _typeCheck = true;
   private _skipCodeGeneration = false;
+  private _replaceExport = false;
   private _basePath: string;
   private _genDir: string;
 
@@ -89,11 +92,14 @@ export class AotPlugin implements Tapable {
   get genDir() { return this._genDir; }
   get program() { return this._program; }
   get skipCodeGeneration() { return this._skipCodeGeneration; }
+  get replaceExport() { return this._replaceExport; }
   get typeCheck() { return this._typeCheck; }
   get i18nFile() { return this._i18nFile; }
   get i18nFormat() { return this._i18nFormat; }
   get locale() { return this._locale; }
   get firstRun() { return this._firstRun; }
+  get lazyRoutes() { return this._lazyRoutes; }
+  get discoveredLazyRoutes() { return this._discoveredLazyRoutes; }
 
   private _setupOptions(options: AotPluginOptions) {
     // Fill in the missing options.
@@ -116,9 +122,14 @@ export class AotPlugin implements Tapable {
     const configResult = ts.readConfigFile(this._tsConfigPath, ts.sys.readFile);
     if (configResult.error) {
       const diagnostic = configResult.error;
-      const {line, character} = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
       const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-      throw new Error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message})`);
+
+      if (diagnostic.file) {
+        const {line, character} = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        throw new Error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message})`);
+      } else {
+        throw new Error(message);
+      }
     }
 
     const tsConfigJson = configResult.config;
@@ -231,6 +242,9 @@ export class AotPlugin implements Tapable {
     }
     if (options.hasOwnProperty('locale')) {
       this._locale = options.locale;
+    }
+    if (options.hasOwnProperty('replaceExport')) {
+      this._replaceExport = options.replaceExport || this._replaceExport;
     }
   }
 
@@ -360,7 +374,11 @@ export class AotPlugin implements Tapable {
           cb();
         }
       });
+    });
+
+    compiler.plugin('normal-module-factory', (nmf: any) => {
       compiler.resolvers.normal.apply(new PathsPlugin({
+        nmf,
         tsConfigPath: this._tsConfigPath,
         compilerOptions: this._compilerOptions,
         compilerHost: this._compilerHost
@@ -413,14 +431,20 @@ export class AotPlugin implements Tapable {
 
     if (diagnostics.length > 0) {
       diagnostics.forEach(diagnostic => {
-        const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-
-        const sourceText = diagnostic.file.getFullText();
-        let {line, character, fileName} = this._translateSourceMap(sourceText,
-          diagnostic.file.fileName, position);
-
         const messageText = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-        const message = `${fileName} (${line + 1},${character + 1}): ${messageText}`;
+        let message;
+
+        if (diagnostic.file) {
+          const position = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+
+          const sourceText = diagnostic.file.getFullText();
+          let {line, character, fileName} = this._translateSourceMap(sourceText,
+            diagnostic.file.fileName, position);
+
+          message = `${fileName} (${line + 1},${character + 1}): ${messageText}`;
+        } else {
+          message = messageText;
+        }
 
         switch (diagnostic.category) {
           case ts.DiagnosticCategory.Error:
@@ -492,10 +516,15 @@ export class AotPlugin implements Tapable {
           if (diagnostics.length > 0) {
             const message = diagnostics
               .map(diagnostic => {
-                const {line, character} = diagnostic.file.getLineAndCharacterOfPosition(
-                  diagnostic.start);
                 const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-                return `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message})`;
+
+                if (diagnostic.file) {
+                  const {line, character} = diagnostic.file.getLineAndCharacterOfPosition(
+                    diagnostic.start);
+                  return `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message})`;
+                } else {
+                  return message;
+                }
               })
               .join('\n');
 
@@ -510,14 +539,14 @@ export class AotPlugin implements Tapable {
       .then(() => {
         // We need to run the `listLazyRoutes` the first time because it also navigates libraries
         // and other things that we might miss using the findLazyRoutesInAst.
-        let discoveredLazyRoutes: LazyRouteMap = this.firstRun
+        this._discoveredLazyRoutes = this.firstRun
           ? this._getLazyRoutesFromNgtools()
           : this._findLazyRoutesInAst();
 
         // Process the lazy routes discovered.
-        Object.keys(discoveredLazyRoutes)
+        Object.keys(this.discoveredLazyRoutes)
           .forEach(k => {
-            const lazyRoute = discoveredLazyRoutes[k];
+            const lazyRoute = this.discoveredLazyRoutes[k];
             k = k.split('#')[0];
             if (lazyRoute === null) {
               return;

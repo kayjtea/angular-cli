@@ -7,11 +7,11 @@ import {
   getDevConfig,
   getProdConfig,
   getStylesConfig,
+  getServerConfig,
   getNonAotConfig,
   getAotConfig
 } from './webpack-configs';
-
-const path = require('path');
+import * as path from 'path';
 
 export interface WebpackConfigOptions {
   projectRoot: string;
@@ -31,15 +31,18 @@ export class NgCliWebpackConfig {
 
     appConfig = this.addAppConfigDefaults(appConfig);
     buildOptions = this.addTargetDefaults(buildOptions);
-    buildOptions = this.mergeConfigs(buildOptions, appConfig);
+    buildOptions = this.mergeConfigs(buildOptions, appConfig, projectRoot);
 
     this.wco = { projectRoot, buildOptions, appConfig };
   }
 
   public buildConfig() {
+    const platformConfig = this.wco.appConfig.platform === 'server' ?
+      getServerConfig(this.wco) : getBrowserConfig(this.wco);
+
     let webpackConfigs = [
       getCommonConfig(this.wco),
-      getBrowserConfig(this.wco),
+      platformConfig,
       getStylesConfig(this.wco),
       this.getTargetConfig(this.wco)
     ];
@@ -102,9 +105,9 @@ export class NgCliWebpackConfig {
   }
 
   // Fill in defaults from .angular-cli.json
-  public mergeConfigs(buildOptions: BuildOptions, appConfig: any) {
+  public mergeConfigs(buildOptions: BuildOptions, appConfig: any, projectRoot: string) {
     const mergeableOptions = {
-      outputPath: appConfig.outDir,
+      outputPath: path.resolve(projectRoot, appConfig.outDir),
       deployUrl: appConfig.deployUrl,
       baseHref: appConfig.baseHref
     };

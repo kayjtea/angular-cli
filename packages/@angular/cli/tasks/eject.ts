@@ -287,7 +287,7 @@ class JsonWebpackSerializer {
         return v;
       } else if (typeof v == 'string') {
         if (v === path.join(this._root, 'node_modules')) {
-          return this._serializeRegExp(/\/node_modules\//);
+          return this._serializeRegExp(/(\\|\/)node_modules(\\|\/)/);
         }
         return this._relativePath('process.cwd()', path.relative(this._root, v));
       } else {
@@ -436,6 +436,9 @@ export default Task.extend({
     if (project.root === path.resolve(outputPath)) {
       throw new SilentError ('Output path MUST not be project root directory!');
     }
+    if (appConfig.platform === 'server') {
+      throw new SilentError('ng eject for platform server applications is coming soon!');
+    }
 
     const webpackConfig = new NgCliWebpackConfig(runTaskOptions, appConfig).buildConfig();
     const serializer = new JsonWebpackSerializer(process.cwd(), outputPath, appConfig.root);
@@ -504,6 +507,7 @@ export default Task.extend({
           'cssnano',
           'exports-loader',
           'file-loader',
+          'html-webpack-plugin',
           'json-loader',
           'karma-sourcemap-loader',
           'less-loader',

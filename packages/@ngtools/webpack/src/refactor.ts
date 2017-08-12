@@ -87,7 +87,7 @@ export class TypeScriptFileRefactor {
   findAstNodes(node: ts.Node | null,
                kind: ts.SyntaxKind,
                recursive = false,
-               max: number = Infinity): ts.Node[] {
+               max = Infinity): ts.Node[] {
     if (max == 0) {
       return [];
     }
@@ -196,7 +196,7 @@ export class TypeScriptFileRefactor {
     this._sourceString.overwrite(node.getStart(this._sourceFile),
                                  node.getEnd(),
                                  replacement,
-                                 replaceSymbolName);
+                                 { storeName: replaceSymbolName });
     this._changed = true;
   }
 
